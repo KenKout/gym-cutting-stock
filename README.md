@@ -6,6 +6,25 @@
 pip install git+https://github.com/martinakaduc/gym-cutting-stock
 ```
 
+## Logging Configuration
+
+You can control the verbosity of logging output using `set_log_level`:
+
+```python
+from gym_cutting_stock.logging_config import set_log_level
+import logging
+
+# Set logging level - options are:
+set_log_level(logging.DEBUG)    # Most verbose
+set_log_level(logging.INFO)     # Default level
+set_log_level(logging.WARNING)  # Only warnings and errors
+set_log_level(logging.ERROR)    # Only errors
+
+# You can also use string names:
+set_log_level('DEBUG')
+set_log_level('INFO')
+```
+
 ## Sample code for Random Policy
 
 ```python

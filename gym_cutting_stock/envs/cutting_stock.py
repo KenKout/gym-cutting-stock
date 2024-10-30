@@ -21,6 +21,8 @@ class CuttingStockEnv(gym.Env):
         max_product_per_type=20,
         seed=42,
     ):
+        self._initial_stocks = None
+        self._initial_products = None
         self.seed = seed
         self.min_w = min_w
         self.min_h = min_h
@@ -98,7 +100,15 @@ class CuttingStockEnv(gym.Env):
         return {"stocks": self._stocks, "products": self._products}
 
     def _get_info(self):
-        return {"filled_ratio": np.mean(self.cutted_stocks).item()}
+        from gym_cutting_stock.helper import MetricsCalculator
+        from gym_cutting_stock.logging_config import logger
+        # Use initial state from reset() for comparison
+        metrics = MetricsCalculator(
+            self._get_obs(),
+            self._initial_products,
+            self._initial_stocks
+        )
+        return {"filled_ratio": metrics.get_filled_ratio()}
 
     def reset(self, seed=None, options=None):
         # We need the following line to seed self.np_random
@@ -114,6 +124,7 @@ class CuttingStockEnv(gym.Env):
             stock[:width, :height] = -1  # Empty cells are marked as -1
             self._stocks.append(stock)
         self._stocks = tuple(self._stocks)
+        self._initial_stocks = tuple(stock.copy() for stock in self._stocks)  # Store initial state
 
         # Randomize products
         self._products = []
@@ -125,6 +136,11 @@ class CuttingStockEnv(gym.Env):
             product = {"size": np.array([width, height]), "quantity": quantity}
             self._products.append(product)
         self._products = tuple(self._products)
+        # Create a deep copy of products to truly preserve initial state
+        self._initial_products = tuple(
+            {"size": np.array(p["size"]), "quantity": p["quantity"]} 
+            for p in self._products
+        )
 
         observation = self._get_obs()
         info = self._get_info()
